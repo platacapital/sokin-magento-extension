@@ -1,0 +1,51 @@
+<!--
+/**
+ * Copyright © 2016 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice" style="display: flex;">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <div style="margin:10px 5px 0 7px;">
+            <label class="label" data-bind="attr: {'for': getCode()}">
+                <span data-bind="text: getPaymentLabel()"></span>
+            </label>
+        </div>
+        <div style="margin-top: 10px;margin-right: 5px;">
+            <img class="sokin-logo" data-bind="attr: { src: require.toUrl('SokinPay_PaymentGateway/image/payment_methods-no-sokin.svg') }"
+                 alt="sokin-icon" style="height: 20px; margin-right: 10px;">
+        </div>
+    </div>
+
+    <div class="payment-method-content">
+        <div class="sokin payment-method-description"
+             style ="padding: 10px; background: #efefef; width: 555px; margin-bottom: 10px;">
+            <span data-bind="text: getPaymentDiscription()"></span>
+        </div>
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                    click: placeOrder,
+                    attr: {title: $t('Place Order')}
+                    ">
+                    <span data-bind="i18n: 'Place Order'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="SokinPaymentGatewayFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">SokinPay\PaymentGateway\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">SokinPay\PaymentGateway\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">SokinPaymentGatewayValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">SokinPaymentGatewayCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Configuration reader -->
+    <virtualType name="SokinPaymentGatewayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">SokinPay\PaymentGateway\Model\Ui\ConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Logger, initialized with SaPaymentGatewayConfig -->
+    <virtualType name="SokinPaymentGatewayLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="config" xsi:type="object">SokinPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="SokinPay\PaymentGateway\Gateway\Http\Client\SokinClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">SokinPaymentGatewayLogger</argument>
+        </arguments>
+    </type>
+
+    <type name="SokinPay\PaymentGateway\Gateway\Http\TransferFactory">
+        <arguments>
+            <argument name="transferBuilder" xsi:type="object">Magento\Payment\Gateway\Http\TransferBuilder</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="SokinPaymentGatewayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">SokinPaymentGatewayAuthorizeCommand</item>
+                <item name="refund" xsi:type="string">SokinPaymentGatewayRefundCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+
+    <!-- Authorize command -->
+    <virtualType name="SokinPaymentGatewayAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">SokinPay\PaymentGateway\Gateway\Request\AuthorizationRequest</argument>
+            <argument name="handler" xsi:type="object">SokinPay\PaymentGateway\Gateway\Response\TxnIdHandler</argument>
+            <argument name="transferFactory" xsi:type="object">SokinPay\PaymentGateway\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">SokinPay\PaymentGateway\Gateway\Http\Client\SokinClient</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorization Request -->
+    <virtualType name="SokinPaymentGatewayAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="transaction" xsi:type="string">SokinPay\PaymentGateway\Gateway\Request\AuthorizationRequest</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="SokinPay\PaymentGateway\Gateway\Request\AuthorizationRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">SokinPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Value handlers infrastructure -->
+    <virtualType name="SokinPaymentGatewayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">SokinPaymentGatewayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="SokinPaymentGatewayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">SokinPaymentGatewayConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="SokinPaymentGatewayRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">SokinPay\PaymentGateway\Gateway\Request\RefundRequest</argument>
+            <argument name="handler" xsi:type="object">SokinPay\PaymentGateway\Gateway\Response\RefundHandler</argument>
+            <argument name="transferFactory" xsi:type="object">SokinPay\PaymentGateway\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">SokinPay\PaymentGateway\Gateway\Http\Client\SokinClient</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="SokinPay\PaymentGateway\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">SokinPaymentGatewayConfig</argument>
+        </arguments>
+    </type>
+
+    <type name="SokinPay\PaymentGateway\Gateway\Response\RefundHandler">
+        <arguments>
+            <argument name="logger" xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+</config>
+
