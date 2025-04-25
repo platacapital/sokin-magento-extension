@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Config/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Config/etc/config.xsd">
     <default>
         <payment>
             <sokinPay_paymentGateway>
@@ -10,7 +11,9 @@
                 <order_status>pending_payment</order_status>
                 <payment_action>authorize</payment_action>
                 <title>Pay with Sokin</title>
-                <description>Pay securely with a variety payment options, including credit cards and pay by bank.</description>
+                <description>
+                    Pay securely with a variety payment options, including credit cards and pay by bank.
+                </description>
                 <currency>USD</currency>
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>

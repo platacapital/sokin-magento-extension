@@ -42,6 +42,6 @@ class TxnIdHandler implements HandlerInterface
 
         // Set the transaction ID and keep the transaction open if needed
         $payment->setTransactionId($response[self::TXN_ID]);
-        // $payment->setIsTransactionClosed(false);
+        // Set Transaction Closed $payment->setIsTransactionClosed(false);
     }
 }
