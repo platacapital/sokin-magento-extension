@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
+
 namespace SokinPay\PaymentGateway\Gateway\Request;
 
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use SokinPay\PaymentGateway\Helper\ConfigHelper;
@@ -10,6 +12,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use SokinPay\PaymentGateway\Service\MakeRequest;
+use SokinPay\PaymentGateway\Service\RequestMethods;
 
 /**
  * Class AuthorizationRequest
@@ -22,26 +26,26 @@ class AuthorizationRequest implements BuilderInterface
      * @var ConfigHelper
      */
     protected $configHelper;
-
     /**
      * @var EncryptorInterface
      */
     protected $encryptor;
-
     /**
      * @var ScopeConfigInterface
      */
     protected $scopeConfig;
-
     /**
      * @var StoreManagerInterface
      */
     protected $storeManager;
-
     /**
      * @var CartRepositoryInterface
      */
     protected $cartRepository;
+    /**
+     * @var MakeRequest
+     */
+    protected $makeRequest;
 
     /**
      * Constructor
@@ -51,19 +55,22 @@ class AuthorizationRequest implements BuilderInterface
      * @param EncryptorInterface $encryptor
      * @param StoreManagerInterface $storeManager
      * @param CartRepositoryInterface $cartRepository
+     * @param MakeRequest $makeRequest
      */
     public function __construct(
         ConfigHelper $configHelper,
         ScopeConfigInterface $scopeConfig,
         EncryptorInterface $encryptor,
         StoreManagerInterface $storeManager,
-        CartRepositoryInterface $cartRepository
+        CartRepositoryInterface $cartRepository,
+        MakeRequest $makeRequest
     ) {
         $this->configHelper = $configHelper;
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
+        $this->makeRequest = $makeRequest;
     }
 
     /**
@@ -119,51 +126,26 @@ class AuthorizationRequest implements BuilderInterface
             'payment_method' => [],
         ];
 
-        $apiKey = $this->configHelper->getSecretKey();
-
-        $apiUrl = $this->configHelper->getApiUrl() . "/orders";
-
-        $checkoutUrl = $this->configHelper->getCheckoutUrl();
-
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => json_encode($requestData),
-            CURLOPT_HTTPHEADER => [
-                'x-api-key: ' . $apiKey,
-                'Content-Type: application/json'
-            ],
-        ]);
-
-        $response = curl_exec($curl);
-        if ($response === false) {
-            throw new Exception('CURL Error: ' . curl_error($curl));
-        }
-
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-        $responseArray = json_decode($response, true);
-
+        $endpoint = '/orders';
+        $response = $this->makeRequest->sendRequest(
+            $endpoint,
+            RequestMethods::REQUEST_METHOD_POST,
+            json_encode($requestData)
+        );
+        $responseArray = (!empty($response['response']) && $response['code'] == 201) ? $response['response'] : [];
+        $httpCode = $response['code'];
         if ($httpCode == 201 && isset($responseArray['success']) && $responseArray['success'] == true) {
+            $checkoutUrl = $this->configHelper->getCheckoutUrl();
             $orderId = $responseArray['orderId'];
             $corporateId = $responseArray['corporateId'];
             $redirectUrl = "$checkoutUrl/$corporateId/$orderId";
             $payment->getPayment()->setAdditionalInformation('redirect_url', $redirectUrl);
-
             return [
                 'success' => true,
                 'order_id' => $orderId,
             ];
         }
-
         $errorMessage = isset($responseArray['message']) ? $responseArray['message'] : 'Unknown error';
-        throw new Exception('Failed to create order: ' . $errorMessage);
+        throw new LocalizedException(__('Failed to create order: ' . $errorMessage));
     }
 }

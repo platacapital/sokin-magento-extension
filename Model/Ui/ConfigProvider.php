@@ -2,28 +2,32 @@
 namespace SokinPay\PaymentGateway\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use SokinPay\PaymentGateway\Helper\ConfigHelper; // Import your helper
+use SokinPay\PaymentGateway\Helper\ConfigHelper;
 
-
-/**
- * Class ConfigProvider
- */
 class ConfigProvider implements ConfigProviderInterface
 {
-     protected $configHelper;
+    public const CODE = 'sokinPay_paymentGateway';
 
-    const CODE = 'sokinPay_paymentGateway';
+    /**
+     * @var ConfigHelper
+     */
+    protected $configHelper;
 
+    /**
+     * ConfigProvider constructor.
+     *
+     * @param ConfigHelper $configHelper
+     */
     public function __construct(ConfigHelper $configHelper)
-    {   
+    {
         $this->configHelper = $configHelper;
     }
-
 
     /**
      * Retrieve assoc array of checkout configuration
      *
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getConfig()
     {
@@ -34,12 +38,10 @@ class ConfigProvider implements ConfigProviderInterface
             'paymentLabel'=>[
                 'paymentLabel' => $this->configHelper->getPaymentLabel(),
             ],
-            'discriptionvalue'=>[
-                 'description' => $this->configHelper->getDiscription(),
+            'descriptionvalue'=>[
+                 'description' => $this->configHelper->getDescription(),
             ]
 
         ];
     }
 }
-
-

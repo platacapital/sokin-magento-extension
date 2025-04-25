@@ -5,18 +5,18 @@ namespace SokinPay\PaymentGateway\Helper;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Psr\Log\LoggerInterface;
 
 class ConfigHelper extends AbstractHelper
 {
-    const XML_PATH_PAYMENT_GATEWAY = 'payment/sokinPay_paymentGateway/';
+    public const XML_PATH_PAYMENT_GATEWAY = 'payment/sokinPay_paymentGateway/';
 
-    const sokinPay_paymentGateway_title = 'payment/sokinPay_paymentGateway/title';
+    public const SOKINPAY_PAYMENTGATEWAY_TITLE = 'payment/sokinPay_paymentGateway/title';
 
-    const sokinPay_paymentGateway_discription = 'payment/sokinPay_paymentGateway/description';
+    public const SOKINPAY_PAYMENTGATEWAY_DESCRIPTION = 'payment/sokinPay_paymentGateway/description';
 
     /**
      * @var EncryptorInterface
@@ -34,9 +34,9 @@ class ConfigHelper extends AbstractHelper
     protected $storeManager;
 
     /**
-     * @var LoggerInterface
+     * @var \SokinPay\PaymentGateway\Helper\Logger
      */
-    protected $logger;
+    public $logger;
 
     /**
      * ConfigHelper constructor.
@@ -45,14 +45,14 @@ class ConfigHelper extends AbstractHelper
      * @param EncryptorInterface $encryptor
      * @param StoreManagerInterface $storeManager
      * @param Context $context
-     * @param LoggerInterface $logger
+     * @param \SokinPay\PaymentGateway\Helper\Logger $logger
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         EncryptorInterface $encryptor,
         StoreManagerInterface $storeManager,
         Context $context,
-        LoggerInterface $logger
+        \SokinPay\PaymentGateway\Helper\Logger $logger
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
@@ -62,25 +62,10 @@ class ConfigHelper extends AbstractHelper
     }
 
     /**
-     * Retrieves the environment configuration.
-     *
-     * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getEnvironment()
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_PAYMENT_GATEWAY . 'environment',
-            ScopeInterface::SCOPE_STORE,
-            $this->storeManager->getStore()->getId()
-        );
-    }
-
-    /**
      * Retrieves the appropriate checkout URL based on the environment.
      *
      * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getCheckoutUrl()
     {
@@ -97,10 +82,25 @@ class ConfigHelper extends AbstractHelper
     }
 
     /**
+     * Retrieves the environment configuration.
+     *
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getEnvironment()
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_PAYMENT_GATEWAY . 'environment',
+            ScopeInterface::SCOPE_STORE,
+            $this->storeManager->getStore()->getId()
+        );
+    }
+
+    /**
      * Retrieves the appropriate API URL based on the environment.
      *
      * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getApiUrl()
     {
@@ -120,7 +120,7 @@ class ConfigHelper extends AbstractHelper
      * Retrieves and decrypts the secret key based on the environment.
      *
      * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getSecretKey()
     {
@@ -138,10 +138,16 @@ class ConfigHelper extends AbstractHelper
         return $this->encryptor->decrypt($encryptedKey);
     }
 
-      public function getPaymentLabel()
+    /**
+     * Function To Get the Payment label
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getPaymentLabel()
     {
         $title = $this->scopeConfig->getValue(
-            self::sokinPay_paymentGateway_title,
+            self::SOKINPAY_PAYMENTGATEWAY_TITLE,
             ScopeInterface::SCOPE_STORE,
             $this->storeManager->getStore()->getId()
         );
@@ -149,14 +155,20 @@ class ConfigHelper extends AbstractHelper
         return $title;
     }
 
-       public function getDiscription()
+    /**
+     * Function To Get the Description
+     *
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getDescription()
     {
-        $discription = $this->scopeConfig->getValue(
-            self::sokinPay_paymentGateway_discription,
+        $description = $this->scopeConfig->getValue(
+            self::SOKINPAY_PAYMENTGATEWAY_DESCRIPTION,
             ScopeInterface::SCOPE_STORE,
             $this->storeManager->getStore()->getId()
         );
 
-        return $discription;
+        return $description;
     }
 }

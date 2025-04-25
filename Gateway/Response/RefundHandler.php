@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace SokinPay\PaymentGateway\Gateway\Response;
 
+use Exception;
+use Magento\Framework\Phrase;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Framework\Exception\LocalizedException;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class RefundHandler
@@ -16,16 +17,16 @@ use Psr\Log\LoggerInterface;
 class RefundHandler implements HandlerInterface
 {
     /**
-     * @var LoggerInterface
+     * @var \SokinPay\PaymentGateway\Helper\Logger
      */
-    private LoggerInterface $logger;
+    private $logger;
 
     /**
      * RefundHandler constructor.
      *
-     * @param LoggerInterface $logger
+     * @param \SokinPay\PaymentGateway\Helper\Logger $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(\SokinPay\PaymentGateway\Helper\Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -44,16 +45,21 @@ class RefundHandler implements HandlerInterface
         $payment = $paymentDataObject->getPayment();
 
         try {
-            if (!empty($response['RESULT_CODE']) && $response['RESULT_CODE'] === 'SUCCESS' && !empty($response['TXN_ID'])) {
+            if (!empty($response['RESULT_CODE']) &&
+                $response['RESULT_CODE'] === 'SUCCESS' &&
+                !empty($response['TXN_ID'])) {
                 $payment->setTransactionId($response['TXN_ID']);
                 $payment->setIsTransactionClosed(true);
             } else {
                 $errorMessage = $response['message'] ?? __('Refund failed. Please try again.');
-                throw new LocalizedException(new \Magento\Framework\Phrase($errorMessage));
+                throw new LocalizedException(new Phrase($errorMessage));
             }
-        } catch (\Exception $e) {
-            $this->logger->error('RefundHandler Error: ' . $e->getMessage(), ['response' => $response]);
-            throw new LocalizedException(__('An error occurred while processing the refund: %1', $e->getMessage()));
+        } catch (Exception $e) {
+            $this->logger->info('RefundHandler Exception: ' . $e->getMessage());
+            $this->logger->info('Response : ' . var_export(['response' => $response], true));
+            throw new LocalizedException(
+                __('An error occurred while processing the refund: %1', $e->getMessage())
+            );
         }
     }
 }

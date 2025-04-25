@@ -24,7 +24,7 @@ define(
                 return window.checkoutConfig.paymentLabel.paymentLabel;
             },
             getPaymentDiscription: function () {
-                return window.checkoutConfig.discriptionvalue.description;
+                return window.checkoutConfig.descriptionvalue.description;
             }
         });
     }
