@@ -28,12 +28,24 @@ This extension implements the Sokin Pay payment processing API for Magento 2, su
    ```
 
 2. Manual Installation:
-   ```bash
-   # Clone the repository
-   cd app/code/
-   git clone https://github.com/sokinpay/magento-payment-gateway.git SokinPay/PaymentGateway
+    1. Connect to your Magento server using SSH or FTP.
+    2. Navigate to the root directory of your Magento installation.
+        ##### 1. Via Clone the repository
+        ```bash
+        cd app/code/
 
-   # Enable the module
+        git clone https://github.com/sokinpay/magento-payment-gateway.git SokinPay/PaymentGateway
+        ```
+        ##### OR
+       ##### 2. Via Zip File Download
+        1. Upload the module package to the `app/code/` directory. If the directories do not exist, create them.
+        2. If you are on a local server, navigate to the `app/code/` directory and then extract the zip file `(Sokin.zip)`.
+
+       ##### Extract the Files
+       1. If the module package is a compressed file (e.g., `.zip` or `.tar.gz`), extract its contents into the `app/code` directory.
+
+   ##### Enable the Module And Run Commands
+   ``` bash
    php bin/magento module:enable SokinPay_PaymentGateway
    php bin/magento setup:upgrade
    php bin/magento setup:di:compile
@@ -52,9 +64,11 @@ SokinPay/
     ├── Controller/              # Admin and Frontend Controllers
     ├── Gateway/                 # Payment Gateway Implementation
     ├── Model/                   # Business Logic
-    ├── Observer/               # Event Observers
-    ├── etc/                    # Configuration
-    ├── view/                   # Frontend Assets
+    ├── Observer/                # Event Observers
+    ├── Plugin/                  # Plugin
+    ├── Service/                 # API Service
+    ├── etc/                     # Configuration
+    ├── view/                    # Frontend Assets
     └── composer.json
 ```
 
@@ -68,24 +82,9 @@ SokinPay/
    php bin/magento deploy:mode:set developer
    ```
 
-### Testing
-1. Unit Tests:
-   ```bash
-   vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/SokinPay/PaymentGateway/Test/Unit
-   ```
-
-2. Integration Tests:
-   ```bash
-   vendor/bin/phpunit -c dev/tests/integration/phpunit.xml.dist app/code/SokinPay/PaymentGateway/Test/Integration
-   ```
-
-3. API Testing:
-   - Use the sandbox environment credentials
-   - Test cards available in [Sokin API Documentation](https://api-docs.sokin.com)
-
 ### Debugging
 - Enable debug logging in `app/etc/env.php`
-- Check `var/log/sokinpay.log` for payment-specific logs
+- Check `var/log/sokinpay-paymentgateway.log` for payment-specific logs
 - Use Magento's debug mode for detailed error messages
 
 ## API Integration
@@ -106,7 +105,17 @@ SokinPay/
 
 Configuration path: `Stores > Configuration > Sales > Payment Methods > Sokin Pay`
 
-Key configuration options:
+### Setup Configuration
+   - In the Magento Admin panel, navigate to Stores > Configuration > Sales > Payment Methods.
+   - Find the SokinPay Pay section and configure the settings as needed:
+   - Enable/Disable: Enable the payment gateway.
+   - Choose the Environment: Select the environment (e.g., Production, Staging).
+   - Enter the X API Key: Found on the SokinPay Payment Dashboard.
+   - Enter the API URL: URL for the API endpoint.
+   - Enter the Checkout URL: URL for the checkout process.
+   - Select Allowed Countries: Specify the countries where the payment method is available
+
+##### Key configuration options:
 ```yaml
 payment:
   sokinpay:
