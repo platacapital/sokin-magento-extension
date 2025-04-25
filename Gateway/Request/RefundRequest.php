@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace SokinPay\PaymentGateway\Gateway\Request;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
-use SokinPay\PaymentGateway\Helper\ConfigHelper;
 use Magento\Sales\Api\CreditmemoRepositoryInterface;
+use SokinPay\PaymentGateway\Service\MakeRequest;
+use SokinPay\PaymentGateway\Service\RequestMethods;
 
 /**
  * Class RefundRequest
@@ -16,35 +18,34 @@ use Magento\Sales\Api\CreditmemoRepositoryInterface;
 class RefundRequest implements BuilderInterface
 {
     /**
-     * @var ConfigHelper
-     */
-    protected $configHelper;
-
-    /**
      * @var CreditmemoRepositoryInterface
      */
     protected $creditmemoRepository;
+    /**
+     * @var MakeRequest
+     */
+    protected $makeRequest;
 
     /**
      * Constructor
      *
-     * @param ConfigHelper $configHelper
      * @param CreditmemoRepositoryInterface $creditmemoRepository
+     * @param MakeRequest $makeRequest
      */
     public function __construct(
-        ConfigHelper $configHelper,
-        CreditmemoRepositoryInterface $creditmemoRepository
+        CreditmemoRepositoryInterface $creditmemoRepository,
+        MakeRequest $makeRequest
     ) {
-        $this->configHelper = $configHelper;
         $this->creditmemoRepository = $creditmemoRepository;
+        $this->makeRequest = $makeRequest;
     }
 
     /**
      * Builds the refund request array to send to the SokinPay payment gateway.
      *
      * @param array $buildSubject
+     *
      * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Exception
      */
     public function build(array $buildSubject)
@@ -82,37 +83,19 @@ class RefundRequest implements BuilderInterface
                 'paymentMethod' => $paymentResponse['paymentMethod'],
             ];
 
-            $apiKey = $this->configHelper->getSecretKey();
-            $apiUrl = $this->configHelper->getApiUrl() . "/refunds";
-
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_URL => $apiUrl,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => json_encode($requestRefund),
-                CURLOPT_HTTPHEADER => [
-                    'x-api-key: ' . $apiKey,
-                    'Content-Type: application/json',
-                ],
-            ]);
-
-            $refundResponse = curl_exec($curl);
-            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
-            $responseArray = json_decode($refundResponse, true);
-
+            $endpoint = '/refunds';
+            $response = $this->makeRequest->sendRequest(
+                $endpoint,
+                RequestMethods::REQUEST_METHOD_POST,
+                json_encode($requestRefund)
+            );
+            $refundResponse = (!empty($response['response']) && $response['code'] == 200) ? $response['response'] : [];
             return [
-                'refund_response' => $responseArray,
-                'http_code' => $httpCode,
+                'refund_response' => $refundResponse,
+                'http_code' => $response['code'],
             ];
         } else {
-            throw new \Exception('Invalid payment response structure.');
+            throw new LocalizedException(__('Invalid payment response structure.'));
         }
     }
 }

@@ -6,7 +6,6 @@ namespace SokinPay\PaymentGateway\Gateway\Http\Client;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Payment\Model\Method\Logger;
 use SokinPay\PaymentGateway\Helper\ConfigHelper;
 use Magento\Framework\Phrase;
 
@@ -18,23 +17,23 @@ use Magento\Framework\Phrase;
 class SokinClient implements ClientInterface
 {
     /**
-     * @var Logger
+     * @var \SokinPay\PaymentGateway\Helper\Logger
      */
-    private Logger $logger;
+    private $logger;
 
     /**
      * @var ConfigHelper
      */
-    protected ConfigHelper $configHelper;
+    protected $configHelper;
 
     /**
      * Constructor
      *
-     * @param Logger $logger
+     * @param \SokinPay\PaymentGateway\Helper\Logger $logger
      * @param ConfigHelper $configHelper
      */
     public function __construct(
-        Logger $logger,
+        \SokinPay\PaymentGateway\Helper\Logger $logger,
         ConfigHelper $configHelper
     ) {
         $this->logger = $logger;
@@ -53,10 +52,8 @@ class SokinClient implements ClientInterface
         $data = $transferObject->getBody();
         $response = $this->generateResponseForCode($data);
 
-        $this->logger->debug([
-            'request' => $transferObject->getBody(),
-            'response' => $response
-        ]);
+        $this->logger->info('request : ' . var_export($transferObject->getBody(), true));
+        $this->logger->info('response : ' . var_export($response, true));
 
         return $response;
     }

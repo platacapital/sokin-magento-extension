@@ -7,6 +7,13 @@ use Magento\Config\Block\System\Config\Form\Field;
 
 class Description extends Field
 {
+    /**
+     * Function _getElementHtml
+     *
+     * @param AbstractElement $element
+     *
+     * @return string
+     */
     protected function _getElementHtml(AbstractElement $element)
     {
         $html = '<div style="padding:4px 0;">';

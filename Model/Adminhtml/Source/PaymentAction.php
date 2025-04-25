@@ -1,19 +1,14 @@
 <?php
-/**
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace SokinPay\PaymentGateway\Model\Adminhtml\Source;
 
+use Magento\Framework\Option\ArrayInterface;
 use Magento\Payment\Model\Method\AbstractMethod;
 
-/**
- * Class PaymentAction
- */
-class PaymentAction implements \Magento\Framework\Option\ArrayInterface
+class PaymentAction implements ArrayInterface
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function toOptionArray()
     {
