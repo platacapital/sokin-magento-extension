@@ -2,7 +2,7 @@
     "name": "sokin-pay/paymentgateway",
     "description": "SokinPay Payment Gateway Integration For Adobe Commerce And Magento",
     "require": {
-        "php": "~7.4.0|~8.1.0|~8.2.0|~8.3.0"
+        "php": "~7.4.0|~8.1.0|~8.2.0|~8.3.0|~8.4.0"
     },
     "type": "magento2-module",
     "version": "1.0.3",
