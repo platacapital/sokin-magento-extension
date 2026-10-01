@@ -4,6 +4,7 @@ namespace SokinPay\PaymentGateway\Service;
 
 use Exception;
 use InvalidArgumentException;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\HTTP\Client\Curl;
 use SokinPay\PaymentGateway\Helper\ConfigHelper;
 
@@ -17,19 +18,26 @@ class MakeRequest
      * @var ConfigHelper
      */
     protected $configHelper;
+    /**
+     * @var LogSanitizer
+     */
+    protected $logSanitizer;
 
     /**
      * Constructor
      *
      * @param Curl $curl
      * @param ConfigHelper $configHelper
+     * @param LogSanitizer|null $logSanitizer
      */
     public function __construct(
         Curl $curl,
-        ConfigHelper $configHelper
+        ConfigHelper $configHelper,
+        ?LogSanitizer $logSanitizer = null
     ) {
         $this->curl = $curl;
         $this->configHelper = $configHelper;
+        $this->logSanitizer = $logSanitizer ?: ObjectManager::getInstance()->get(LogSanitizer::class);
     }
 
     /**
@@ -52,9 +60,13 @@ class MakeRequest
             $url = $this->prepareUrl($endPoint);
 
             $this->configHelper->logger->info('Url : ' . $url);
-            $this->configHelper->logger->info('Headers : ' . var_export($headers, true));
+            $this->configHelper->logger->info(
+                'Headers : ' . var_export($this->logSanitizer->sanitize($headers), true)
+            );
             $this->configHelper->logger->info('Method : ' . $method);
-            $this->configHelper->logger->info('Params : ' . var_export($params, true));
+            $this->configHelper->logger->info(
+                'Params : ' . var_export($this->logSanitizer->sanitize($params), true)
+            );
 
             $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->curl->setHeaders($headers);
@@ -82,7 +94,9 @@ class MakeRequest
             $httpCode = $this->curl->getStatus(); // Get HTTP response code
 
             $this->configHelper->logger->info('Response Code : ' . $httpCode);
-            $this->configHelper->logger->info('Response : ' . var_export($response, true));
+            $this->configHelper->logger->info(
+                'Response : ' . var_export($this->logSanitizer->sanitize($response), true)
+            );
 
             $returnData = [
                 'code' => $httpCode,

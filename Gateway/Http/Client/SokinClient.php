@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace SokinPay\PaymentGateway\Gateway\Http\Client;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use SokinPay\PaymentGateway\Helper\ConfigHelper;
+use SokinPay\PaymentGateway\Service\LogSanitizer;
 use Magento\Framework\Phrase;
 
 /**
@@ -27,17 +29,25 @@ class SokinClient implements ClientInterface
     protected $configHelper;
 
     /**
+     * @var LogSanitizer
+     */
+    private $logSanitizer;
+
+    /**
      * Constructor
      *
      * @param \SokinPay\PaymentGateway\Helper\Logger $logger
      * @param ConfigHelper $configHelper
+     * @param LogSanitizer|null $logSanitizer
      */
     public function __construct(
         \SokinPay\PaymentGateway\Helper\Logger $logger,
-        ConfigHelper $configHelper
+        ConfigHelper $configHelper,
+        ?LogSanitizer $logSanitizer = null
     ) {
         $this->logger = $logger;
         $this->configHelper = $configHelper;
+        $this->logSanitizer = $logSanitizer ?: ObjectManager::getInstance()->get(LogSanitizer::class);
     }
 
     /**
@@ -52,8 +62,12 @@ class SokinClient implements ClientInterface
         $data = $transferObject->getBody();
         $response = $this->generateResponseForCode($data);
 
-        $this->logger->info('request : ' . var_export($transferObject->getBody(), true));
-        $this->logger->info('response : ' . var_export($response, true));
+        $this->logger->info(
+            'request : ' . var_export($this->logSanitizer->sanitize($transferObject->getBody()), true)
+        );
+        $this->logger->info(
+            'response : ' . var_export($this->logSanitizer->sanitize($response), true)
+        );
 
         return $response;
     }
